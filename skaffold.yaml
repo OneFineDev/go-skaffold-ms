@@ -1,0 +1,57 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: livereload-skaffold
+
+profiles:
+  - name: dev
+    build:
+      local:
+        concurrency: 1
+        tryImportMissing: false
+        useDockerCLI: false
+        push: false
+      artifacts:
+        - image: keyvaults
+          context: ./keyvaults
+          sync:
+            manual:
+              - src: ./keyvaults
+                dest: .
+          docker:
+            dockerfile: dev.Dockerfile
+            noCache: false
+            squash: false
+          # hooks:
+          #   before:
+          #     - command: ["task", "tailwind"]
+          #     - command: ["templ", "generate", "--watch", "&"]
+
+    activation:
+      - command: dev
+
+  - name: debug
+    requiresAllActivations: false
+    build:
+      local:
+        concurrency: 1
+        tryImportMissing: false
+        useDockerCLI: false
+        push: false
+      artifacts:
+        - image: livereload
+          context: .
+          hooks:
+            before:
+              - command: ["templ", "generate"]
+          docker:
+            dockerfile: Dockerfile
+            noCache: false
+            squash: false
+    activation:
+      - command: debug
+
+deploy:
+  kubectl:
+    remoteManifests: ["k8s/*.yaml"]
+    defaultNamespace: microservices

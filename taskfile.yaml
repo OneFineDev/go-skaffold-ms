@@ -1,0 +1,36 @@
+version: "3"
+
+tasks:
+  ginit:
+    vars:
+      PKG: package
+    cmds:
+      - go mod init "github.com/onefinedev/{{.PKG}}"
+    ENV:
+      PKG_NAME: $PKG
+
+  dup:
+    cmds:
+      - docker-compose -f ./.docker/docker-compose.yaml up
+
+  dbuup:
+    cmds:
+      - docker-compose -f ./.docker/docker-compose.yaml up --build
+
+  tailwindinit:
+    cmds:
+      - npx tailwindcss init
+
+  tailwind:
+    dir: ./client
+    cmds:
+      - npx tailwindcss -i ./public/assets/input.css -o ./public/assets/dist/output.css --watch
+
+  templ:
+    cmds:
+      - templ generate --watch
+
+  fewatch:
+    cmds:
+      - task: tailwind
+      - task: templ
